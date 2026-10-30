@@ -1,0 +1,20 @@
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(17, 24, 39, 0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+}
+.modal-card {
+  background: white; border-radius: var(--radius); padding: 28px; width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.modal-card h2 { margin: 0; }
+.modal-card label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+.modal-card input, .modal-card textarea {
+  font-family: inherit; font-weight: 400; padding: 10px 12px;
+  border: 1px solid var(--color-border); border-radius: 8px; font-size: 14px;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; align-items: center; }
+.btn-danger {
+  background: white; color: #dc2626; border: 1px solid #fecaca; padding: 10px 16px;
+  border-radius: var(--radius); font-size: 14px; cursor: pointer; margin-right: auto;
+}
+.btn-danger:hover { background: #fef2f2; }

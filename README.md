@@ -1,79 +1,78 @@
-# TaskFlow — Front-End (Week 2)
+# TaskFlow — Integrated Full Stack Application (Week 4)
 
-A responsive, multi-view front-end for the TaskFlow task management app, built with **React 18**, **React Router**, and **Vite**. This implements the UI designed in the Week 1 planning phase (see wireframes and architecture in the Week 1 submission).
-
-## Views
-
-| Route | View | Description |
-|---|---|---|
-| `/` | Landing Page | Marketing hero, feature highlights, "Get Started" CTA into the app |
-| `/dashboard` | Dashboard | Task list with live search and status filtering (Pending / In Progress / Done) |
-| `/tasks/:id` | Task Detail | Editable task detail form (title, description, status, due date) |
-
-All three views are connected through a persistent navbar and in-page navigation (clicking a task card opens its detail view; the detail view links back to the dashboard).
-
-## Development Process
-
-1. Started from the Week 1 system architecture and wireframes to define the three required views and their navigation flow.
-2. Set up the project with **Vite** for fast local development (chosen over Create React App for its speed and simpler config).
-3. Built reusable components (`Navbar`, `TaskCard`) before page-level components, to keep the UI consistent and DRY.
-4. Used **React Router v6** for client-side routing between the three views.
-5. Used local component state (`useState`, `useMemo`) to drive search, filtering, and the editable detail form — no global state library was needed at this scale.
-6. Styled with plain CSS using CSS custom properties (`:root` variables) for a consistent design system (colors, radius, shadows) shared across all components.
-7. Added responsive breakpoints (`@media` queries) so the layout adapts cleanly from desktop down to ~375px mobile widths.
-8. Data is currently mocked in `src/data/mockTasks.js`, shaped to match the MongoDB schema designed in Week 1 — this will be swapped for real API calls (`/api/tasks`) once the back-end is built in a later week.
-
-## Design Patterns & Libraries
-
-- **Component-based architecture** — pages (`Landing`, `Dashboard`, `TaskDetail`) compose smaller reusable components (`Navbar`, `TaskCard`).
-- **Controlled components** — all form inputs in the Task Detail view are controlled via React state.
-- **Derived state with `useMemo`** — the filtered task list in the Dashboard is recomputed only when `search` or `filter` change, avoiding unnecessary re-computation.
-- **React Router v6** (`react-router-dom`) for declarative routing and navigation (`useNavigate`, `useParams`, `NavLink`).
-- No CSS framework — custom CSS was used to keep the bundle small and match the exact design from the Week 1 wireframes.
-
-## Project Structure
+TaskFlow is a task manager with a **React (Vite) front-end** and a **Node/Express + MongoDB back-end**. This week the Week 2 front-end was connected to the Week 3 REST API, replacing all mock data with real, authenticated API calls.
 
 ```
-src/
-  components/
-    Navbar.jsx        # Top navigation bar, shown on every page
-    TaskCard.jsx       # Individual task row on the dashboard
-  pages/
-    Landing.jsx        # View 1: marketing / entry page
-    Dashboard.jsx       # View 2: task list with search & filter
-    TaskDetail.jsx      # View 3: single task detail & edit form
-  data/
-    mockTasks.js        # Mock data matching the Week 1 MongoDB schema
-  styles/
-    *.css               # One stylesheet per component/page
-  App.jsx               # Route definitions
-  main.jsx              # App entry point
+taskflow/
+├── frontend/   React 18 + React Router + Vite   (http://localhost:5173)
+└── backend/    Express + Mongoose + JWT          (http://localhost:5000)
 ```
 
-## Running Locally
+## Running the whole app locally
 
-Requires [Node.js](https://nodejs.org/) v18 or later.
+Requires Node.js 18+ and MongoDB (local install, or a free MongoDB Atlas cluster).
 
+### 1. Start the back-end
 ```bash
-# 1. Install dependencies
+cd backend
 npm install
-
-# 2. Start the development server
-npm run dev
-
-# 3. Open the app
-# Vite will print a local URL, typically:
-http://localhost:5173
+cp .env.example .env        # then edit MONGO_URI and JWT_SECRET
+npm run dev                 # API on http://localhost:5000/api
 ```
+Check it: `curl http://localhost:5000/api/health`
 
-To create a production build:
-
+### 2. Start the front-end (second terminal)
 ```bash
-npm run build
-npm run preview
+cd frontend
+npm install
+cp .env.example .env        # VITE_API_URL=http://localhost:5000/api
+npm run dev                 # app on http://localhost:5173
 ```
 
-## Notes
+### 3. Use it
+Open http://localhost:5173 → **Sign Up** → you land on the dashboard → create, edit, filter, search and delete tasks. Log out and back in: your tasks are loaded from MongoDB.
 
-- The "+ New Task" button on the dashboard is intentionally disabled for now — task creation will be wired up once the back-end API (Week 3+) is available.
-- Edits made in the Task Detail view are saved to local component state only (not persisted) until the back-end integration is complete.
+> The back-end's `CLIENT_ORIGIN` (in `backend/.env`) must match the front-end's origin (`http://localhost:5173` by default) or the browser will block requests with a CORS error.
+
+### Tests
+`cd backend && npm test` runs the Jest/Supertest suite against an in-memory MongoDB.
+
+## How the integration works
+
+| Concern | Implementation |
+|---|---|
+| API access | `frontend/src/api/client.js` — one `request()` wrapper around `fetch` that sets the JSON headers, attaches `Authorization: Bearer <token>`, parses the response, and throws an `Error` with the server's message on any non-2xx result |
+| Auth state | `frontend/src/context/AuthContext.jsx` — React Context exposing `user`, `login`, `signup`, `logout`, and a `loading` flag while a saved session is verified via `GET /auth/me` |
+| Token storage | JWT in `sessionStorage` (survives refresh, cleared when the tab closes) |
+| Route protection | `ProtectedRoute` redirects logged-out visitors from `/dashboard` and `/tasks/:id` to `/login` |
+| Data fetching | `Dashboard` and `TaskDetail` fetch in `useEffect`, with loading, error and empty states |
+| Search / filter | Sent to the server as `?status=` and `?search=` (debounced 250 ms) instead of filtering in the browser |
+| Mutations | Create (modal), update (detail page), delete — each calls the API and updates UI state from the server's response |
+
+### Integration points between the layers
+| Front-end call | Back-end endpoint |
+|---|---|
+| `api.signup` / `api.login` | `POST /api/auth/signup`, `POST /api/auth/login` |
+| session restore | `GET /api/auth/me` |
+| `api.getTasks(params)` | `GET /api/tasks?status=&search=` |
+| `api.getTask(id)` | `GET /api/tasks/:id` |
+| `api.createTask` | `POST /api/tasks` |
+| `api.updateTask` | `PUT /api/tasks/:id` |
+| `api.deleteTask` | `DELETE /api/tasks/:id` |
+
+## Challenges and solutions
+
+1. **Mock data shape did not match the real API.** The mock used `id` and a plain `YYYY-MM-DD` string; MongoDB returns `_id`, and `dueDate` is `null` or a full ISO timestamp. *Solution:* switched all keys and routes to `_id`, rendered `dueDate?.slice(0, 10)` with a "No due date" fallback, and sent `null` rather than an empty string when no date is chosen.
+2. **CORS and hard-coded URLs.** Browsers block cross-origin calls unless the API allows the front-end's origin. *Solution:* the API base URL comes from `VITE_API_URL`, and the back-end reads the allowed origin from `CLIENT_ORIGIN`; both are documented in `.env.example` files.
+3. **Network failures looked like silent bugs.** `fetch` only rejects when the network fails, not on 4xx/5xx. *Solution:* the wrapper converts both cases into a readable `Error` ("Could not reach the server…" or the API's own message) which every page shows in an alert region.
+4. **Session lost on refresh.** Keeping the user only in React state logged them out on every reload. *Solution:* persist the token and, on startup, verify it with `/auth/me` before trusting it; `ProtectedRoute` waits on the `loading` flag so users are not bounced to `/login` mid-check.
+5. **Out-of-order responses.** Typing quickly in the search box fires several requests; a slow early one could overwrite a newer result. *Solution:* a 250 ms debounce plus a `cancelled` flag in the effect cleanup so stale responses are ignored.
+6. **New task appeared under the wrong filter.** Creating a "pending" task while the "done" tab was open inserted it into the visible list. *Solution:* insert locally only if the task matches the active filter.
+7. **No package registry in the build environment.** The integration was assembled in a sandbox without `npm install`. *Solution:* each file was syntax-checked with esbuild, and the integrated UI was exercised end-to-end against a small dependency-free stand-in server implementing the *same* routes, status codes and response shapes as `backend/` (documented in `API_DOCUMENTATION.md`). The demo video was recorded that way. **Before relying on it, run the real stack as described above** — that is the configuration this project is intended for.
+
+## Demo video
+`TaskFlow_Integration_Demo.webm` shows: protected-route redirect → failed login handled gracefully → sign up → empty dashboard → creating tasks → editing status → server-side filter and search → delete → logout → login again with data intact.
+
+## Further documentation
+- `backend/API_DOCUMENTATION.md` — full endpoint reference
+- `backend/README.md`, `frontend/README.md` — per-package notes
