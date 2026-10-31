@@ -1,0 +1,23 @@
+ok 1 - logged-out visit to /dashboard redirects to log in
+ok 2 - wrong credentials show a readable error and keep the user on the form
+ok 3 - signup creates the account and lands on the dashboard
+ok 4 - new account sees the empty state
+ok 5 - creating three tasks through the modal adds them to the list
+ok 6 - task detail edits persist (status change saved to the server)
+ok 7 - server-side status filter narrows the list
+ok 8 - search with regex characters '(' and '[' does not break the page
+not ok 9 - existing list stays visible (dimmed) while a refetch is in flight
+  # list was blanked during refetch (cards=0)
+not ok 10 - deleting a task removes it
+  # page.click: Timeout 30000ms exceeded.
+not ok 11 - logout then login restores the server-side data
+  # got 3
+not ok 12 - page refresh keeps the session (token verified via /auth/me)
+  # session lost: http://localhost:8795/dashboard
+ok 13 - unreachable API shows a readable error instead of a blank page
+not ok 14 - expired token mid-session logs the user out and redirects to login
+  # still on http://localhost:8795/dashboard
+
+# tests 14
+# pass 9
+# fail 5

@@ -1,0 +1,268 @@
+
+> taskflow-backend@1.0.0 test:unit
+> node --test tests/unit/validate.unit.js tests/unit/errorHandler.unit.js tests/unit/utils.unit.js tests/unit/taskQuery.unit.js tests/unit/controllers.unit.js
+
+TAP version 13
+# Subtest: getTasks returns only the caller's tasks
+ok 1 - getTasks returns only the caller's tasks
+  ---
+  duration_ms: 2.344092
+  type: 'test'
+  ...
+# Subtest: getTasks filters by status and search
+ok 2 - getTasks filters by status and search
+  ---
+  duration_ms: 0.716004
+  type: 'test'
+  ...
+# Subtest: getTasks survives regex metacharacters in search
+ok 3 - getTasks survives regex metacharacters in search
+  ---
+  duration_ms: 0.554728
+  type: 'test'
+  ...
+# Subtest: getTasks rejects operator objects in ?status[$ne]=
+ok 4 - getTasks rejects operator objects in ?status[$ne]=
+  ---
+  duration_ms: 0.367505
+  type: 'test'
+  ...
+# Subtest: getTaskById cannot read another user's task (404)
+ok 5 - getTaskById cannot read another user's task (404)
+  ---
+  duration_ms: 0.512311
+  type: 'test'
+  ...
+# Subtest: createTask uses the authenticated user and ignores a userId in the body
+ok 6 - createTask uses the authenticated user and ignores a userId in the body
+  ---
+  duration_ms: 0.529001
+  type: 'test'
+  ...
+# Subtest: updateTask changes only provided fields
+ok 7 - updateTask changes only provided fields
+  ---
+  duration_ms: 0.431273
+  type: 'test'
+  ...
+# Subtest: updateTask / deleteTask on another user's task return 404
+ok 8 - updateTask / deleteTask on another user's task return 404
+  ---
+  duration_ms: 0.637399
+  type: 'test'
+  ...
+# Subtest: deleteTask removes the caller's own task
+ok 9 - deleteTask removes the caller's own task
+  ---
+  duration_ms: 1.024337
+  type: 'test'
+  ...
+# Subtest: signup creates a user and returns a token
+ok 10 - signup creates a user and returns a token
+  ---
+  duration_ms: 1.186027
+  type: 'test'
+  ...
+# Subtest: signup with an existing email returns 409
+ok 11 - signup with an existing email returns 409
+  ---
+  duration_ms: 0.515177
+  type: 'test'
+  ...
+# Subtest: login succeeds with the right password and fails with a wrong one
+ok 12 - login succeeds with the right password and fails with a wrong one
+  ---
+  duration_ms: 0.624835
+  type: 'test'
+  ...
+# Subtest: requireAuth rejects missing, malformed and invalid tokens
+ok 13 - requireAuth rejects missing, malformed and invalid tokens
+  ---
+  duration_ms: 0.565309
+  type: 'test'
+  ...
+# Subtest: requireAuth rejects a valid token whose user was deleted
+ok 14 - requireAuth rejects a valid token whose user was deleted
+  ---
+  duration_ms: 1.16669
+  type: 'test'
+  ...
+# Subtest: requireAuth attaches the user for a valid token
+ok 15 - requireAuth attaches the user for a valid token
+  ---
+  duration_ms: 0.337544
+  type: 'test'
+  ...
+# Error: connect ECONNREFUSED 10.0.0.5:27017 user=admin
+#     at TestContext.<anonymous> (/home/claude/w5/backend/tests/unit/errorHandler.unit.js:37:22)
+#     at Test.runInAsyncScope (node:async_hooks:214:14)
+#     at Test.run (node:internal/test_runner/test:1047:25)
+#     at Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+#     at Test.postRun (node:internal/test_runner/test:1173:19)
+#     at Test.run (node:internal/test_runner/test:1101:12)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+# Subtest: ApiError keeps its status code and message
+ok 16 - ApiError keeps its status code and message
+  ---
+  duration_ms: 1.60189
+  type: 'test'
+  ...
+# Subtest: notFound forwards a 404 ApiError naming the route
+ok 17 - notFound forwards a 404 ApiError naming the route
+  ---
+  duration_ms: 0.246162
+  type: 'test'
+  ...
+# Subtest: Mongoose ValidationError becomes 400 with joined messages
+ok 18 - Mongoose ValidationError becomes 400 with joined messages
+  ---
+  duration_ms: 0.203878
+  type: 'test'
+  ...
+# Subtest: duplicate key error becomes 409 naming the field
+ok 19 - duplicate key error becomes 409 naming the field
+  ---
+  duration_ms: 0.160599
+  type: 'test'
+  ...
+# Subtest: CastError (bad ObjectId) becomes 400
+ok 20 - CastError (bad ObjectId) becomes 400
+  ---
+  duration_ms: 0.167191
+  type: 'test'
+  ...
+# Subtest: unexpected errors return 500 WITHOUT leaking internal details
+ok 21 - unexpected errors return 500 WITHOUT leaking internal details
+  ---
+  duration_ms: 3.626188
+  type: 'test'
+  ...
+# Subtest: filter always includes the owner id
+ok 22 - filter always includes the owner id
+  ---
+  duration_ms: 1.694591
+  type: 'test'
+  ...
+# Subtest: valid status and search are applied
+ok 23 - valid status and search are applied
+  ---
+  duration_ms: 0.275563
+  type: 'test'
+  ...
+# Subtest: unknown status is rejected with 400
+ok 24 - unknown status is rejected with 400
+  ---
+  duration_ms: 0.46345
+  type: 'test'
+  ...
+# Subtest: operator injection via ?status[$ne]=x is rejected
+ok 25 - operator injection via ?status[$ne]=x is rejected
+  ---
+  duration_ms: 0.185889
+  type: 'test'
+  ...
+# Subtest: non-string search (array/object) is rejected
+ok 26 - non-string search (array/object) is rejected
+  ---
+  duration_ms: 0.175735
+  type: 'test'
+  ...
+# Subtest: regex metacharacters in search are escaped so they match literally
+ok 27 - regex metacharacters in search are escaped so they match literally
+  ---
+  duration_ms: 0.296201
+  type: 'test'
+  ...
+# Subtest: an unbalanced bracket in search no longer produces an invalid regex
+ok 28 - an unbalanced bracket in search no longer produces an invalid regex
+  ---
+  duration_ms: 0.290472
+  type: 'test'
+  ...
+# Subtest: very long search strings are rejected
+ok 29 - very long search strings are rejected
+  ---
+  duration_ms: 0.153496
+  type: 'test'
+  ...
+# Subtest: asyncHandler forwards rejected promises to next()
+ok 30 - asyncHandler forwards rejected promises to next()
+  ---
+  duration_ms: 1.090404
+  type: 'test'
+  ...
+# Subtest: asyncHandler does not call next() on success
+ok 31 - asyncHandler does not call next() on success
+  ---
+  duration_ms: 5.865098
+  type: 'test'
+  ...
+# Subtest: ApiError is an Error flagged as operational
+ok 32 - ApiError is an Error flagged as operational
+  ---
+  duration_ms: 0.680394
+  type: 'test'
+  ...
+# Subtest: validateSignup accepts a valid payload
+ok 33 - validateSignup accepts a valid payload
+  ---
+  duration_ms: 1.316661
+  type: 'test'
+  ...
+# Subtest: validateSignup rejects short name, bad email, short password
+ok 34 - validateSignup rejects short name, bad email, short password
+  ---
+  duration_ms: 0.377312
+  type: 'test'
+  ...
+# Subtest: validateSignup rejects non-string email (array) instead of crashing later
+ok 35 - validateSignup rejects non-string email (array) instead of crashing later
+  ---
+  duration_ms: 0.17054
+  type: 'test'
+  ...
+# Subtest: validateLogin requires both fields
+ok 36 - validateLogin requires both fields
+  ---
+  duration_ms: 0.180557
+  type: 'test'
+  ...
+# Subtest: validateLogin rejects object values (NoSQL operator injection attempt)
+ok 37 - validateLogin rejects object values (NoSQL operator injection attempt)
+  ---
+  duration_ms: 0.256408
+  type: 'test'
+  ...
+# Subtest: validateTaskInput allows partial updates and valid values
+ok 38 - validateTaskInput allows partial updates and valid values
+  ---
+  duration_ms: 0.34566
+  type: 'test'
+  ...
+# Subtest: validateTaskInput rejects blank title, bad status, bad date
+ok 39 - validateTaskInput rejects blank title, bad status, bad date
+  ---
+  duration_ms: 0.258894
+  type: 'test'
+  ...
+# Subtest: validateTaskInput rejects non-string description
+ok 40 - validateTaskInput rejects non-string description
+  ---
+  duration_ms: 0.147859
+  type: 'test'
+  ...
+# Subtest: validateTaskInput rejects a numeric dueDate
+ok 41 - validateTaskInput rejects a numeric dueDate
+  ---
+  duration_ms: 0.330735
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 387.475922

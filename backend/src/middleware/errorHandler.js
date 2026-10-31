@@ -32,8 +32,12 @@ function errorHandler(err, _req, res, _next) {
     message = `Invalid ${err.path}: ${err.value}`;
   }
 
-  if (!err.isOperational && process.env.NODE_ENV !== "production") {
-    console.error(err);
+  // Unexpected errors (database outages, bugs) must not leak internals to the client.
+  // Mapped Mongoose errors above set a 4xx/409 status, so only true 500s are masked here.
+  const unexpected = statusCode >= 500 && !err.isOperational;
+  if (unexpected) {
+    console.error(err); // keep full detail in the server log only
+    message = "Internal server error";
   }
 
   res.status(statusCode).json({

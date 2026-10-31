@@ -148,3 +148,33 @@ describe("Task API", () => {
     expect(getRes.status).toBe(404);
   });
 });
+
+// ---- Week 5 regression tests (security / robustness fixes) ----
+describe("Task API - query hardening", () => {
+  test("search containing regex metacharacters returns 200, not a server error", async () => {
+    const token = await signupAndGetToken();
+    await request(app).post("/api/tasks").set("Authorization", `Bearer ${token}`).send({ title: "Fix bug (urgent)" });
+    const res = await request(app).get("/api/tasks").query({ search: "(urgent" }).set("Authorization", `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(1);
+  });
+
+  test("operator injection via ?status[$ne]=done is rejected with 400", async () => {
+    const token = await signupAndGetToken();
+    const res = await request(app).get("/api/tasks?status[$ne]=done").set("Authorization", `Bearer ${token}`);
+    expect(res.status).toBe(400);
+  });
+
+  test("unknown status filter is rejected with 400", async () => {
+    const token = await signupAndGetToken();
+    const res = await request(app).get("/api/tasks?status=bogus").set("Authorization", `Bearer ${token}`);
+    expect(res.status).toBe(400);
+  });
+
+  test("task body with a non-string description is rejected", async () => {
+    const token = await signupAndGetToken();
+    const res = await request(app).post("/api/tasks").set("Authorization", `Bearer ${token}`)
+      .send({ title: "x", description: { nested: true } });
+    expect(res.status).toBe(400);
+  });
+});

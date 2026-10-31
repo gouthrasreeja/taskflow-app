@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client.js";
+import { toDateInput } from "../utils/format.js";
 import "../styles/TaskDetail.css";
 
 export default function TaskDetail() {
@@ -103,7 +104,7 @@ export default function TaskDetail() {
             Due Date
             <input
               type="date"
-              value={task.dueDate ? task.dueDate.slice(0, 10) : ""}
+              value={toDateInput(task.dueDate)}
               onChange={(e) => handleChange("dueDate", e.target.value)}
             />
           </label>

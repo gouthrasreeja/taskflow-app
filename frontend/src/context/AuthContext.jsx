@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { api, getToken, setToken, clearToken } from "../api/client.js";
+import { api, authEvents, getToken, setToken, clearToken } from "../api/client.js";
 
 const AuthContext = createContext(null);
 
@@ -21,6 +21,13 @@ export function AuthProvider({ children }) {
       }
     }
     restoreSession();
+  }, []);
+
+  // If any API call reports an expired/invalid token, drop the user so ProtectedRoute redirects to /login.
+  useEffect(() => {
+    const onUnauthorized = () => setUser(null);
+    authEvents.addEventListener("unauthorized", onUnauthorized);
+    return () => authEvents.removeEventListener("unauthorized", onUnauthorized);
   }, []);
 
   async function signup(name, email, password) {

@@ -1,0 +1,70 @@
+{
+  "label": "BEFORE (Week 4 code)",
+  "runs": 7,
+  "tasks": 500,
+  "cpuThrottle": "4x",
+  "scriptMs_median": 475.3,
+  "layoutMs_median": 238.2,
+  "styleMs_median": 90.8,
+  "taskMs_median": 1913.9,
+  "domAdded_median": 9732,
+  "domRemoved_median": 9732,
+  "raw": [
+    {
+      "scriptMs": 499.6090000000001,
+      "layoutMs": 225.487,
+      "styleMs": 90.795,
+      "taskMs": 1995.52,
+      "domAdded": 9732,
+      "domRemoved": 9732
+    },
+    {
+      "scriptMs": 433.86899999999997,
+      "layoutMs": 238.157,
+      "styleMs": 86.558,
+      "taskMs": 1785.2010000000002,
+      "domAdded": 9732,
+      "domRemoved": 9732
+    },
+    {
+      "scriptMs": 476.903,
+      "layoutMs": 245.49699999999996,
+      "styleMs": 111.80199999999999,
+      "taskMs": 1913.9109999999996,
+      "domAdded": 9732,
+      "domRemoved": 9732
+    },
+    {
+      "scriptMs": 536.229,
+      "layoutMs": 278.79600000000005,
+      "styleMs": 148.08599999999998,
+      "taskMs": 2104.473,
+      "domAdded": 9732,
+      "domRemoved": 9732
+    },
+    {
+      "scriptMs": 421.28700000000003,
+      "layoutMs": 215.44800000000004,
+      "styleMs": 67.00399999999999,
+      "taskMs": 1782.5839999999998,
+      "domAdded": 9732,
+      "domRemoved": 9732
+    },
+    {
+      "scriptMs": 438.9,
+      "layoutMs": 207.262,
+      "styleMs": 106.43799999999999,
+      "taskMs": 1787.6979999999999,
+      "domAdded": 9732,
+      "domRemoved": 9732
+    },
+    {
+      "scriptMs": 475.303,
+      "layoutMs": 273.10400000000004,
+      "styleMs": 86.87500000000001,
+      "taskMs": 1975.9140000000002,
+      "domAdded": 9732,
+      "domRemoved": 9732
+    }
+  ]
+}

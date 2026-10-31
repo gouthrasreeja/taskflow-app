@@ -1,0 +1,70 @@
+{
+  "label": "AFTER (Week 5 optimized)",
+  "runs": 7,
+  "tasks": 500,
+  "cpuThrottle": "4x",
+  "scriptMs_median": 407.4,
+  "layoutMs_median": 141.4,
+  "styleMs_median": 69.9,
+  "taskMs_median": 1891.3,
+  "domAdded_median": 5280,
+  "domRemoved_median": 5280,
+  "raw": [
+    {
+      "scriptMs": 450.598,
+      "layoutMs": 141.411,
+      "styleMs": 95.07300000000001,
+      "taskMs": 2071.495,
+      "domAdded": 5280,
+      "domRemoved": 5280
+    },
+    {
+      "scriptMs": 349.37399999999997,
+      "layoutMs": 140.23800000000003,
+      "styleMs": 48.495999999999995,
+      "taskMs": 1725.5259999999998,
+      "domAdded": 5280,
+      "domRemoved": 5280
+    },
+    {
+      "scriptMs": 395.75999999999993,
+      "layoutMs": 143.407,
+      "styleMs": 59.995000000000005,
+      "taskMs": 1891.25,
+      "domAdded": 5280,
+      "domRemoved": 5280
+    },
+    {
+      "scriptMs": 452.98599999999993,
+      "layoutMs": 119.993,
+      "styleMs": 80.66900000000001,
+      "taskMs": 1967.438,
+      "domAdded": 5280,
+      "domRemoved": 5280
+    },
+    {
+      "scriptMs": 407.37800000000004,
+      "layoutMs": 144.941,
+      "styleMs": 69.913,
+      "taskMs": 1833.7569999999998,
+      "domAdded": 5280,
+      "domRemoved": 5280
+    },
+    {
+      "scriptMs": 467.747,
+      "layoutMs": 146.89200000000002,
+      "styleMs": 70.421,
+      "taskMs": 1897.414,
+      "domAdded": 5280,
+      "domRemoved": 5280
+    },
+    {
+      "scriptMs": 365.24100000000004,
+      "layoutMs": 116.538,
+      "styleMs": 67.963,
+      "taskMs": 1614.645,
+      "domAdded": 5280,
+      "domRemoved": 5280
+    }
+  ]
+}

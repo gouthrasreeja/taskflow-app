@@ -76,3 +76,72 @@ Open http://localhost:5173 → **Sign Up** → you land on the dashboard → cre
 ## Further documentation
 - `backend/API_DOCUMENTATION.md` — full endpoint reference
 - `backend/README.md`, `frontend/README.md` — per-package notes
+
+---
+
+# Week 5 — Testing, Debugging & Optimization
+
+## Testing strategy
+
+| Level | Tool | What it covers | Where | Executed in the build environment? |
+|---|---|---|---|---|
+| Unit — back-end | Node built-in `node:test` (no install needed) | validators, error handler, query builder, async wrapper, **controllers & auth middleware with in-memory fakes** (ownership rules, 401/404/409 paths) | `backend/tests/unit/*.unit.js` | **Yes — 41/41 pass** |
+| Unit — front-end | `node:test` | API client (headers, JWT, errors, 401 handling, query strings), date helpers | `frontend/tests/*.unit.js` | **Yes — 15/15 pass** |
+| Integration — back-end | Jest + Supertest + in-memory MongoDB | real Express app + real Mongoose models over HTTP | `backend/tests/*.test.js` | **No** (needs `npm install`) — run it yourself |
+| End-to-end | Playwright | real browser → real UI → API: auth, CRUD, filter/search, error handling, session expiry | `e2e/full-flow.e2e.cjs` | **Yes — 14/14 pass** (against a stand-in API) |
+
+**Why these tools.** `node:test` ships with Node, so the unit suites run with zero setup and the back-end logic is tested against the *real source files*. Jest/Supertest exercise the full HTTP stack. Playwright validates what users actually do. Component-level (React Testing Library) tests are a documented next step; UI behaviour is currently covered at the E2E level.
+
+**Test design rationale.** Each unit test targets one rule: *accept good input*, *reject each class of bad input*, *never touch another user's data*, *map each error type to the right status code*. Fakes (`tests/unit/helpers`) stand in for Mongoose, JWT and bcrypt so failures point at our code, not at a library.
+
+## Running the tests
+
+```bash
+# Back-end unit tests (no database, no install needed beyond Node 18+)
+cd backend && npm run test:unit
+
+# Back-end integration tests (needs: npm install)
+cd backend && npm run test:integration       # or: npm test  (runs both)
+
+# Front-end unit tests (Node 18+, no install needed)
+cd frontend && npm test
+
+# End-to-end (start back-end and front-end first; needs: npm i -D playwright && npx playwright install chromium)
+BASE_URL=http://localhost:5173 node e2e/full-flow.e2e.cjs
+
+# Performance profile of the dashboard with 500 seeded tasks
+BASE_URL=http://localhost:5173 API_URL=http://localhost:5000/api node perf/profile-dashboard.cjs "my run" 7
+```
+
+## Results (saved in `logs/`)
+
+| Suite | Before fixes | After fixes |
+|---|---|---|
+| Back-end unit | 25 pass / **8 fail** (33) | **41 pass** / 0 fail |
+| Front-end unit | 0 pass / **11 fail** (11) | **15 pass** / 0 fail |
+| E2E | 9 pass / **5 fail** (14) | **14 pass** / 0 fail |
+
+`docs/DEBUGGING_REPORT.md` lists every bug found (root cause, fix, regression test) and the lessons learned.
+
+## Bugs found and fixed (summary)
+Query-operator injection on `?status=` (B1) · regex crash/ReDoS on `?search=` (B2) · type confusion in login/signup/task validators (B3–B5) · internal error text leaked on 500 (B6) · API client crashed outside Vite so it was untestable (B7) · expired token mid-session left users stuck (B8) · list blanked on every refetch (B9).
+
+## Optimizations
+
+Profiled with Playwright + Chrome DevTools metrics: 500 tasks, 4× CPU throttle, one session of typing a search plus four filter changes, **median of 7 runs** (`logs/perf-BEFORE.json`, `logs/perf-AFTER.json`, chart in `docs/perf-before-after.png`).
+
+| Metric | Before | After | Change |
+|---|---|---|---|
+| DOM nodes created per session | 9,732 | 5,280 | **−46 %** |
+| Layout time | 238 ms | 141 ms | **−41 %** (ranges don't overlap) |
+| Style recalculation | 91 ms | 70 ms | −23 % |
+| Scripting | 475 ms | 407 ms | −14 % |
+| Total main-thread task time | 1,914 ms | 1,891 ms | −1 % (**within noise — not claimed as a gain**) |
+
+What changed: (1) `TaskCard` wrapped in `React.memo` so keystrokes in the search box no longer re-render every card; (2) the dashboard keeps the current list on screen while refetching instead of unmounting/rebuilding it.
+
+Also applied but **not benchmarked** (no database available): `.lean()` on read queries, a compound `{ userId, createdAt }` index matching the list query, a 10 kB body-size limit.
+
+**Bottleneck still open:** rendering all 500 tasks at once dominates total time. Server-side pagination or list virtualization is the recommended next step.
+
+> The E2E and profiling numbers were produced against a stand-in API with the same contract as `backend/` (`perf/standin/`), since npm was unavailable in the build environment. Absolute times will differ on your machine; compare before/after on the same machine using the shipped scripts.

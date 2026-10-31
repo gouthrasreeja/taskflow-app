@@ -1,46 +1,51 @@
 const ApiError = require("../utils/ApiError");
+const { VALID_STATUSES } = require("../utils/constants");
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
-const VALID_STATUSES = ["pending", "in-progress", "done"];
+const isString = (v) => typeof v === "string";
 
+// Every field is type-checked first: JSON bodies can carry arrays/objects, and
+// operator objects such as { "$gt": "" } must never reach a database query.
 function validateSignup(req, _res, next) {
-  const { name, email, password } = req.body;
+  const { name, email, password } = req.body || {};
 
-  if (!name || typeof name !== "string" || name.trim().length < 2) {
+  if (!isString(name) || name.trim().length < 2) {
     return next(new ApiError(400, "Name must be at least 2 characters"));
   }
-  if (!email || !EMAIL_REGEX.test(email)) {
+  if (!isString(email) || !EMAIL_REGEX.test(email)) {
     return next(new ApiError(400, "A valid email is required"));
   }
-  if (!password || typeof password !== "string" || password.length < 6) {
+  if (!isString(password) || password.length < 6) {
     return next(new ApiError(400, "Password must be at least 6 characters"));
   }
   next();
 }
 
 function validateLogin(req, _res, next) {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { email, password } = req.body || {};
+  if (!isString(email) || !isString(password) || !email || !password) {
     return next(new ApiError(400, "Email and password are required"));
   }
   next();
 }
 
 function validateTaskInput(req, _res, next) {
-  const { title, status, dueDate } = req.body;
+  const { title, description, status, dueDate } = req.body || {};
 
-  // Title is required on create, optional on update - only enforce
-  // "must not be blank if provided" so PATCH-style partial updates work.
-  if (title !== undefined && (typeof title !== "string" || !title.trim())) {
+  // Title is required on create (the model enforces that) but optional on update.
+  if (title !== undefined && (!isString(title) || !title.trim())) {
     return next(new ApiError(400, "Title cannot be empty"));
   }
-  if (status !== undefined && !VALID_STATUSES.includes(status)) {
-    return next(
-      new ApiError(400, `Status must be one of: ${VALID_STATUSES.join(", ")}`)
-    );
+  if (description !== undefined && !isString(description)) {
+    return next(new ApiError(400, "Description must be text"));
   }
-  if (dueDate !== undefined && dueDate !== null && isNaN(Date.parse(dueDate))) {
-    return next(new ApiError(400, "dueDate must be a valid date"));
+  if (status !== undefined && !VALID_STATUSES.includes(status)) {
+    return next(new ApiError(400, `Status must be one of: ${VALID_STATUSES.join(", ")}`));
+  }
+  if (dueDate !== undefined && dueDate !== null) {
+    if (!isString(dueDate) || isNaN(Date.parse(dueDate))) {
+      return next(new ApiError(400, "dueDate must be a valid date"));
+    }
   }
   next();
 }

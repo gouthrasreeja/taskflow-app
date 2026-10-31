@@ -36,4 +36,7 @@ const taskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Matches GET /api/tasks: filter by owner, sorted newest-first, so no in-memory sort is needed
+taskSchema.index({ userId: 1, createdAt: -1 });
+
 module.exports = mongoose.model("Task", taskSchema);

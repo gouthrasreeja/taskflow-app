@@ -63,3 +63,5 @@
     gap: 12px;
   }
 }
+
+.task-list.is-refreshing { opacity: 0.6; transition: opacity 0.15s; }

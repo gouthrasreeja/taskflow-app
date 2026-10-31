@@ -79,3 +79,22 @@ describe("Auth API", () => {
     expect(res.body.data.user.email).toBe(validUser.email);
   });
 });
+
+// ---- Week 5 regression tests ----
+describe("Auth API - input type hardening", () => {
+  test("login with an operator object instead of an email string returns 400", async () => {
+    const res = await request(app).post("/api/auth/login").send({ email: { $gt: "" }, password: "x" });
+    expect(res.status).toBe(400);
+  });
+
+  test("signup with an array instead of an email string returns 400", async () => {
+    const res = await request(app).post("/api/auth/signup").send({ name: "Ada", email: ["a@b.co"], password: "secret1" });
+    expect(res.status).toBe(400);
+  });
+
+  test("malformed JSON body returns 400 without leaking a stack trace", async () => {
+    const res = await request(app).post("/api/auth/login").set("Content-Type", "application/json").send("{bad json");
+    expect(res.status).toBe(400);
+    expect(JSON.stringify(res.body)).not.toMatch(/node_modules|at \w+/);
+  });
+});

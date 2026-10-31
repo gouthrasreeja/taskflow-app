@@ -14,7 +14,7 @@ function createApp() {
         : "*",
     })
   );
-  app.use(express.json());
+  app.use(express.json({ limit: "10kb" })); // reject oversized bodies early
 
   app.get("/api/health", (_req, res) => {
     res.status(200).json({ success: true, message: "TaskFlow API is running" });

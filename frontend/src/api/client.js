@@ -1,4 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// `import.meta.env` only exists under Vite; optional chaining keeps this module importable
+// (and unit-testable) in plain Node.
+const API_BASE = import.meta.env?.VITE_API_URL || "http://localhost:5000/api";
+
+// Lets the API layer tell the React app "your session is no longer valid" without importing React.
+export const authEvents = new EventTarget();
 
 // The JWT lives in sessionStorage: it survives a refresh in the same tab
 // but is cleared when the tab closes.
@@ -27,7 +32,16 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const payload = isJson ? await res.json() : null;
-  if (!res.ok) throw new Error(payload?.message || `Request failed (${res.status})`);
+
+  if (!res.ok) {
+    // A 401 on a call that carried a token means it expired or was revoked:
+    // drop it and let the app send the user back to the login page.
+    if (res.status === 401 && auth && getToken()) {
+      clearToken();
+      authEvents.dispatchEvent(new Event("unauthorized"));
+    }
+    throw new Error(payload?.message || `Request failed (${res.status})`);
+  }
   return payload;
 }
 

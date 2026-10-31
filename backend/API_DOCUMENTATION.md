@@ -52,7 +52,7 @@ Create a new user account.
 **Error responses**
 | Status | Cause |
 |---|---|
-| 400 | Missing/invalid name, email, or password |
+| 400 | Missing/invalid name, email, or password (all three must be strings) |
 | 409 | Email already registered |
 
 ---
@@ -105,6 +105,13 @@ List the authenticated user's tasks.
 |---|---|---|
 | status | string | Filter to `pending`, `in-progress`, or `done` |
 | search | string | Case-insensitive substring match on title |
+
+**Error responses**
+| Status | Cause |
+|---|---|
+| 400 | `status` is not one of the allowed values, `status`/`search` is not plain text (e.g. `?status[$ne]=done`), or `search` is longer than 100 characters |
+
+Search text is matched literally (regex characters such as `(` or `[` are treated as ordinary characters).
 
 **Success response** `200 OK`
 ```json

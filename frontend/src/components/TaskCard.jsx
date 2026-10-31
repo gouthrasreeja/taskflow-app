@@ -1,4 +1,6 @@
+import { memo } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatDueDate } from "../utils/format.js";
 import "../styles/TaskCard.css";
 
 const statusLabels = {
@@ -7,7 +9,9 @@ const statusLabels = {
   done: "Done",
 };
 
-export default function TaskCard({ task }) {
+// memo: typing in the search box re-renders Dashboard on every keystroke; without memo every card
+// re-rendered each time. With stable `task` objects, React now skips unchanged cards.
+function TaskCard({ task }) {
   const navigate = useNavigate();
 
   return (
@@ -20,7 +24,7 @@ export default function TaskCard({ task }) {
     >
       <div className="task-card-main">
         <h3>{task.title}</h3>
-        <p className="task-due">{task.dueDate ? `Due: ${task.dueDate.slice(0, 10)}` : "No due date"}</p>
+        <p className="task-due">{formatDueDate(task.dueDate)}</p>
       </div>
       <span className={`status-badge status-${task.status}`}>
         {statusLabels[task.status]}
@@ -28,3 +32,5 @@ export default function TaskCard({ task }) {
     </div>
   );
 }
+
+export default memo(TaskCard);

@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false); // true after the first successful fetch
   const [error, setError] = useState("");
   const [showNewTask, setShowNewTask] = useState(false);
 
@@ -24,7 +25,10 @@ export default function Dashboard() {
         if (filter !== "all") params.status = filter;
         if (search) params.search = search;
         const res = await api.getTasks(params);
-        if (!cancelled) setTasks(res.data);
+        if (!cancelled) {
+          setTasks(res.data);
+          setHasLoaded(true);
+        }
       } catch (err) {
         if (!cancelled) setError(err.message);
       } finally {
@@ -77,11 +81,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {loading && <p className="status-text">Loading tasks...</p>}
+      {/* Only the very first load shows a blocking message; later refetches keep the current
+          list on screen (dimmed) instead of unmounting and rebuilding every card. */}
+      {loading && !hasLoaded && <p className="status-text">Loading tasks...</p>}
       {error && <p className="status-text error-text" role="alert">{error}</p>}
 
-      {!loading && !error && (
-        <div className="task-list">
+      {hasLoaded && !error && (
+        <div className={loading ? "task-list is-refreshing" : "task-list"} aria-busy={loading}>
           {tasks.length > 0 ? (
             tasks.map((task) => <TaskCard key={task._id} task={task} />)
           ) : (
