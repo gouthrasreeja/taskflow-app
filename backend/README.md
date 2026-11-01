@@ -53,7 +53,7 @@ API_DOCUMENTATION.md          # Full endpoint reference (methods, params, respon
 
 ## Setup & Running Locally
 
-Requires [Node.js](https://nodejs.org/) v18+ and either a local MongoDB instance or a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster.
+Requires [Node.js](https://nodejs.org/) v22+ (24 LTS recommended) and either a local MongoDB instance or a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster.
 
 ```bash
 # 1. Install dependencies

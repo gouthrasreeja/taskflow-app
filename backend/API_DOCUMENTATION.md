@@ -192,14 +192,25 @@ Delete a task.
 ## Health Check
 
 ### GET /api/health
-Unauthenticated. Used to confirm the API is running (e.g. for uptime checks).
+Unauthenticated. Used by the host's health check and by uptime monitors. Reports whether the database connection is up.
 
 **Success response** `200 OK`
 ```json
-{ "success": true, "message": "TaskFlow API is running" }
+{ "success": true, "status": "ok", "db": "connected", "uptimeSeconds": 1234, "timestamp": "2026-11-01T06:50:40.980Z" }
 ```
+**Degraded response** `503 Service Unavailable` — same shape with `"success": false, "status": "degraded", "db": "disconnected"`.
 
 ---
+
+## Cross-Cutting Behaviour
+
+| Topic | Behaviour |
+|---|---|
+| Rate limiting | `POST /api/auth/login` and `/api/auth/signup`: 20 attempts per IP per 15 minutes (`AUTH_RATE_LIMIT_MAX`). Excess requests get `429` with a `Retry-After` header; `RateLimit-Limit` / `RateLimit-Remaining` are sent on every attempt |
+| Request id | Every response carries `X-Request-Id`. Responses for unexpected `500` errors also include `"requestId"` in the body |
+| Security headers | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Content-Security-Policy: default-src 'none'`, `Cache-Control: no-store`, `Strict-Transport-Security` (production) |
+| CORS | Only origins listed in `CLIENT_ORIGIN` are allowed (required in production) |
+| Body size | JSON bodies larger than 10 kB are rejected |
 
 ## Error Handling Summary
 
@@ -208,8 +219,9 @@ Unauthenticated. Used to confirm the API is running (e.g. for uptime checks).
 | 400 | Bad Request — validation failed |
 | 401 | Unauthorized — missing/invalid credentials or token |
 | 404 | Not Found — resource doesn't exist or isn't owned by this user |
+| 429 | Too Many Requests — login/signup rate limit exceeded |
 | 409 | Conflict — duplicate email on signup |
-| 500 | Internal Server Error — unexpected failure |
+| 500 | Internal Server Error — unexpected failure (generic message; use `requestId` to find details in the server log) |
 
 ## Data Models
 

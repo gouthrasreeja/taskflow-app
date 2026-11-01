@@ -120,3 +120,15 @@ test("a 401 from LOGIN (wrong password) does not fire the logout event", async (
   await assert.rejects(mod.api.login("a@b.co", "bad"), { message: "Invalid email or password" });
   assert.equal(notified, false);
 });
+
+test("a deployed site built without VITE_API_URL fails with a clear message instead of calling localhost", async () => {
+  const { api } = await import("../src/api/client.js");
+  mockFetch(() => jsonRes(200, {}));
+  globalThis.location = { hostname: "taskflow-web.onrender.com" };
+  try {
+    await assert.rejects(api.getTasks(), /VITE_API_URL was not set/);
+    assert.equal(calls.length, 0, "no network request may be attempted");
+  } finally {
+    delete globalThis.location;
+  }
+});

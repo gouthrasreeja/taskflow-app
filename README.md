@@ -10,7 +10,7 @@ taskflow/
 
 ## Running the whole app locally
 
-Requires Node.js 18+ and MongoDB (local install, or a free MongoDB Atlas cluster).
+Requires Node.js 22+ (24 LTS recommended) and MongoDB (local install, or a free MongoDB Atlas cluster).
 
 ### 1. Start the back-end
 ```bash
@@ -97,13 +97,13 @@ Open http://localhost:5173 → **Sign Up** → you land on the dashboard → cre
 ## Running the tests
 
 ```bash
-# Back-end unit tests (no database, no install needed beyond Node 18+)
+# Back-end unit tests (no database, no install needed beyond Node 22+)
 cd backend && npm run test:unit
 
 # Back-end integration tests (needs: npm install)
 cd backend && npm run test:integration       # or: npm test  (runs both)
 
-# Front-end unit tests (Node 18+, no install needed)
+# Front-end unit tests (Node 22+, no install needed)
 cd frontend && npm test
 
 # End-to-end (start back-end and front-end first; needs: npm i -D playwright && npx playwright install chromium)
@@ -145,3 +145,49 @@ Also applied but **not benchmarked** (no database available): `.lean()` on read 
 **Bottleneck still open:** rendering all 500 tasks at once dominates total time. Server-side pagination or list virtualization is the recommended next step.
 
 > The E2E and profiling numbers were produced against a stand-in API with the same contract as `backend/` (`perf/standin/`), since npm was unavailable in the build environment. Absolute times will differ on your machine; compare before/after on the same machine using the shipped scripts.
+
+---
+
+# Week 6 — Deployment, Maintenance & Reflection
+
+| Document | Purpose |
+|---|---|
+| [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md) | Step-by-step deployment (MongoDB Atlas + Render), CORS wiring, troubleshooting table |
+| [`docs/SECURITY_CHECKLIST.md`](docs/SECURITY_CHECKLIST.md) | Security measures with honest status, and known gaps |
+| [`docs/MAINTENANCE_PLAN.md`](docs/MAINTENANCE_PLAN.md) | Logging, monitoring, update/rollback procedure, backups, incident runbook |
+| [`docs/UAT_PLAN.md`](docs/UAT_PLAN.md) | User-acceptance test cases and a results record to fill in after deploying |
+| [`docs/PROJECT_REFLECTION.md`](docs/PROJECT_REFLECTION.md) | What went well, challenges, lessons, improvements |
+| `render.yaml` | Render Blueprint describing both services |
+| `.github/workflows/ci.yml`, `dependabot.yml` | Tests, build and `npm audit` on every push; weekly dependency PRs |
+| `scripts/smoke-test.cjs` | Automated post-deployment checks (functional + security) |
+| `scripts/backup-mongodb.sh` | Manual database backup (Atlas free tier has none) |
+
+## What changed to make the app production-ready
+* **Configuration is validated at startup** (`src/config/env.js`): missing/weak secrets, a missing `CLIENT_ORIGIN` or a wildcard CORS origin stop the server with a clear message instead of failing later.
+* **Security:** security headers, login/signup rate limiting, `trust proxy` for correct client IPs behind Render, framework header removed, CORS allow-list, generic 5xx messages (from Week 5), body-size limit.
+* **Observability:** structured JSON logs, per-request id (`X-Request-Id`), health endpoint that reports database state, graceful shutdown on `SIGTERM`, logged unhandled rejections/exceptions.
+* **Front-end:** a deployed build without `VITE_API_URL` now fails with a clear message instead of silently calling `localhost`; SPA rewrite files for Render / Netlify / Vercel.
+
+## Environment variables
+| Variable | Where | Notes |
+|---|---|---|
+| `NODE_ENV`, `MONGO_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN`, `PORT`, `LOG_LEVEL`, `AUTH_RATE_LIMIT_MAX` | API | see `backend/.env.example` |
+| `VITE_API_URL` | Front-end (build time) | see `frontend/.env.production.example` |
+
+## Quick deploy summary
+1. Atlas M0 cluster → user with readWrite on `taskflow` → allow network access → copy connection string.
+2. Render Web Service, Root Directory `backend`, set the env vars → check `/api/health`.
+3. Render Static Site, Root Directory `frontend`, build `npm install && npm run build`, publish `dist`, env `VITE_API_URL`, rewrite `/*` → `/index.html`.
+4. Set the API's `CLIENT_ORIGIN` to the front-end URL.
+5. Run `scripts/smoke-test.cjs` against the live URLs and complete `docs/UAT_PLAN.md`.
+
+## Test status (this submission)
+| Suite | Result | Executed where |
+|---|---|---|
+| Back-end unit (`npm run test:unit`) | **61 / 61 pass** | build environment |
+| Front-end unit (`npm test`) | **16 / 16 pass** | build environment |
+| Smoke test, functional checks | 11 / 11 pass against a stand-in API (`logs/`) | build environment |
+| Smoke test, hardening checks | correctly **fail** on the un-hardened stand-in (proves they can detect problems); **must be run against the live deployment** | — |
+| Jest + Supertest integration, E2E | included from Week 5 | run locally / in CI |
+
+> **Deployment itself has not been performed by the author of these files** — the build environment had no internet access. The guide, configuration and smoke test are written so that you can perform and verify it, and the UAT record is deliberately blank until you do.

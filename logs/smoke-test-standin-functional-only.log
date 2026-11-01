@@ -1,0 +1,16 @@
+  # health responded in 73 ms
+ok 1 - API is reachable (first request may take ~1 min if the free host was asleep)
+ok 2 - unknown route returns a JSON 404
+ok 3 - signup creates an account and returns a token
+ok 4 - duplicate signup is rejected with 409
+ok 5 - signup validation rejects a short password with 400
+ok 6 - login with a wrong password returns 401
+ok 7 - login with the right password returns a token
+ok 8 - task routes require a token (401 without one)
+ok 9 - create, read, update and delete a task
+ok 10 - a second user cannot read, change or delete the first user's task (404)
+ok 11 - cleanup: delete the smoke-test task
+
+# tests 11
+# pass 11
+# fail 0

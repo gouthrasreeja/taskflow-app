@@ -38,3 +38,18 @@ test("unexpected errors return 500 WITHOUT leaking internal details", () => {
   assert.equal(res.statusCode, 500);
   assert.equal(res.body.message, "Internal server error");
 });
+
+test("unexpected 5xx responses include the request id so users can quote it", () => {
+  const origErr = console.error; console.error = () => {};
+  try {
+    const res = mockRes();
+    errorHandler(new Error("db down"), { id: "req-123" }, res, () => {});
+    assert.equal(res.body.requestId, "req-123");
+    assert.equal(res.body.message, "Internal server error");
+  } finally { console.error = origErr; }
+});
+test("4xx responses do not carry a request id field", () => {
+  const res = mockRes();
+  errorHandler(new ApiError(404, "nope"), { id: "req-9" }, res, () => {});
+  assert.equal(res.body.requestId, undefined);
+});

@@ -1,6 +1,14 @@
 // `import.meta.env` only exists under Vite; optional chaining keeps this module importable
 // (and unit-testable) in plain Node.
-const API_BASE = import.meta.env?.VITE_API_URL || "http://localhost:5000/api";
+const CONFIGURED_API = import.meta.env?.VITE_API_URL;
+const API_BASE = CONFIGURED_API || "http://localhost:5000/api";
+
+// Deployment guard: if the site was built WITHOUT VITE_API_URL it would silently call
+// localhost from every visitor's browser. Fail loudly with an actionable message instead.
+const isLocalHost = () => {
+  const h = globalThis.location?.hostname;
+  return !h || h === "localhost" || h === "127.0.0.1";
+};
 
 // Lets the API layer tell the React app "your session is no longer valid" without importing React.
 export const authEvents = new EventTarget();
@@ -15,6 +23,9 @@ export const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
 // Central fetch wrapper: attaches the auth header, parses JSON, and throws a
 // plain Error carrying the API's message so callers only need try/catch.
 async function request(path, { method = "GET", body, auth = true } = {}) {
+  if (!CONFIGURED_API && !isLocalHost()) {
+    throw new Error("This site is not connected to its server yet (VITE_API_URL was not set when it was built).");
+  }
   const headers = { "Content-Type": "application/json" };
   if (auth && getToken()) headers.Authorization = `Bearer ${getToken()}`;
 

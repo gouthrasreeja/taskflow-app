@@ -1,4 +1,5 @@
 const ApiError = require("../utils/ApiError");
+const logger = require("../utils/logger");
 
 // 404 handler - runs when no route matched
 function notFound(req, _res, next) {
@@ -7,7 +8,7 @@ function notFound(req, _res, next) {
 
 // Central error handler - must be registered last, after all routes.
 // Express recognizes it as an error handler because it takes 4 arguments.
-function errorHandler(err, _req, res, _next) {
+function errorHandler(err, req, res, _next) {
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal server error";
 
@@ -36,14 +37,15 @@ function errorHandler(err, _req, res, _next) {
   // Mapped Mongoose errors above set a 4xx/409 status, so only true 500s are masked here.
   const unexpected = statusCode >= 500 && !err.isOperational;
   if (unexpected) {
-    console.error(err); // keep full detail in the server log only
+    // keep full detail in the server log only, tagged with the request id
+    logger.error("unhandled_error", { requestId: req && req.id, name: err.name, message: err.message, stack: err.stack });
     message = "Internal server error";
   }
 
-  res.status(statusCode).json({
-    success: false,
-    message,
-  });
+  const body = { success: false, message };
+  // For 5xx, give the user an id they can quote; it matches the X-Request-Id log line.
+  if (unexpected && req && req.id) body.requestId = req.id;
+  res.status(statusCode).json(body);
 }
 
 module.exports = { notFound, errorHandler };

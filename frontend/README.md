@@ -52,7 +52,7 @@ src/
 
 ## Running Locally
 
-Requires [Node.js](https://nodejs.org/) v18 or later.
+Requires [Node.js](https://nodejs.org/) v22 or later (24 LTS recommended).
 
 ```bash
 # 1. Install dependencies

@@ -1,0 +1,52 @@
+# Render Blueprint: one file describing both services. Alternative to clicking through the dashboard
+# (the manual steps are in docs/DEPLOYMENT_GUIDE.md). MongoDB lives in Atlas, not here.
+services:
+  # ---- API (Node/Express) ----
+  - type: web
+    name: taskflow-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      - key: MONGO_URI          # paste your Atlas connection string in the dashboard
+        sync: false
+      - key: JWT_SECRET         # Render generates a long random value
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLIENT_ORIGIN      # the front-end's public URL, e.g. https://taskflow-web.onrender.com
+        sync: false
+
+  # ---- Front-end (static React build) ----
+  - type: web
+    name: taskflow-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: VITE_API_URL       # e.g. https://taskflow-api.onrender.com/api  (build-time variable)
+        sync: false
+    routes:
+      - type: rewrite           # single-page app: any path serves index.html
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

@@ -1,0 +1,24 @@
+  # health responded in 52 ms
+not ok 1 - API is reachable (first request may take ~1 min if the free host was asleep)
+  # health does not report db: connected
+ok 2 - unknown route returns a JSON 404
+ok 3 - signup creates an account and returns a token
+ok 4 - duplicate signup is rejected with 409
+ok 5 - signup validation rejects a short password with 400
+ok 6 - login with a wrong password returns 401
+ok 7 - login with the right password returns a token
+ok 8 - task routes require a token (401 without one)
+ok 9 - create, read, update and delete a task
+ok 10 - a second user cannot read, change or delete the first user's task (404)
+not ok 11 - operator injection (?status[$ne]=done) is rejected with 400
+  # status 200
+ok 12 - search text with regex characters does not cause a server error
+not ok 13 - malformed JSON gives 400 and no stack trace
+  # status 401: {"success":false,"message":"Invalid email or password"}
+not ok 14 - security headers are present and the framework is not advertised
+  # missing X-Content-Type-Options
+ok 15 - cleanup: delete the smoke-test task
+
+# tests 15
+# pass 11
+# fail 4

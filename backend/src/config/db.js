@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const logger = require("../utils/logger");
 
 async function connectDB() {
   const uri = process.env.MONGO_URI;
@@ -9,12 +10,13 @@ async function connectDB() {
 
   mongoose.set("strictQuery", true);
 
-  await mongoose.connect(uri);
+  // 10 s instead of the 30 s default, so a wrong URI or an Atlas IP-allow-list problem fails quickly
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
 
-  console.log(`MongoDB connected: ${mongoose.connection.host}`);
+  logger.info("mongo_connected", { host: mongoose.connection.host });
 
   mongoose.connection.on("error", (err) => {
-    console.error("MongoDB connection error:", err.message);
+    logger.error("mongo_error", { message: err.message });
   });
 }
 

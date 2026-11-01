@@ -1,3 +1,5 @@
+process.env.AUTH_RATE_LIMIT_MAX = "100000"; // tests create many accounts from one IP
+process.env.LOG_LEVEL = "error"; // keep test output quiet
 const { MongoMemoryServer } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
 
